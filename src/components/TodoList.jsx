@@ -1,43 +1,64 @@
-import React, { useState } from 'react'
-import { useAddTodo, useDeleteTodo, useTodoList, useUpdateTodo } from '../hooks/useTodo'
-import AddTodo from './ui/AddTodo';
-import TodoItem from './ui/TodoItem';
+import { useState } from "react";
+import { useTodoStore } from "../store/todoStore";
+
 
 const TodoList = () => {
-    const [todo, setTodo] = useState('')
-    const { data: todoList, isError, error, isLoading } = useTodoList();
-    const { mutate: addTodo, isPending } = useAddTodo();
-    const { mutate: delTodo } = useDeleteTodo();
+  const { todos,  updateTodo, deleteTodo } = useTodoStore();
+  const [editId, setEditId] = useState(null);
+  const [editText, setEditText] = useState("");
 
-    if (isLoading) return <span>Loading todos...</span>
-    if (isError) return <span>Something went wrong - {error}</span>
-    if (!todoList.length) return <span>No tasks found!</span>
+  const handleUpdate = (id) => {
+    if (!editText.trim()){
+        alert('Todooo cannot be empty')
+        return;
+    };
+    updateTodo(id, editText);
+    console.log(todos)
+    setEditId(null);
+    setEditText("");
+  };
+  
 
-    const handleAdd = () => {
-        if (!todo.trim()) {
-            alert('Please Enter the input');
-            return;
-        }
-        addTodo({ title: todo })
-        setTodo('')
-    }
+  if (todos.length === 0) return <span>No todos available..</span>;
 
-    const handleDelete = (id) => {
-        delTodo(id)
-    }
+  return (
+    <div>
+      <h2>Zustand </h2>
+      <ul>
+        {todos.map((item) => (
+          <li key={item.id}>
+            {editId === item.id ? (
+              <>
+                <input
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                />
+                <button onClick={() => handleUpdate(item.id)}>Save</button>
+                <button onClick={() => setEditId(null)}>Cancel</button>
+              </>
+            ) : (
+              <>
+                <span
+                >
+                  {item.text}
+                </span>
+                <button
+                  onClick={() => {
+                    setEditId(item.id);
+                    setEditText(item.text);
+                  }}
+                >
+                  Edit
+                </button>
+                <button onClick={() => deleteTodo(item.id)}>Delete</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
-    return (
-        <div>TodoList
-            <AddTodo todo={todo} setTodo={setTodo} onAdd={handleAdd} isPending={isPending} />
-            {todoList.map((item) => (
-                <TodoItem key={item.id} data={item} onDelete={handleDelete} />
-            ))}
-            
-        </div>
-    )
-}
-
-export default TodoList
-
-
+export default TodoList;
 
